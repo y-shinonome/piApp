@@ -40,46 +40,88 @@ var i2c = require("i2c-bus");
 var DHT20_ADDR = 0x38;
 var READ_ADDR = 0x71;
 var MEASUREMENT_ADDR = 0xAC;
+var MEASUREMENT_PARAM = [0x33, 0x00];
 var sleep = function (msec) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
     return [2 /*return*/, new Promise(function (resolve) { return setTimeout(resolve, msec); })];
 }); }); };
-var getTemperature = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var i2c1, wbuf, rbuf, binary, temperature, temp1, temp2;
+var isCompleted = function (bus) {
+    var statusBit = bus.readByteSync(DHT20_ADDR, READ_ADDR).toString(2).padStart(8, '0');
+    //測定ステータスの7ビット目が測定完了フラグ
+    if (statusBit.substring(0, 1) === '0') {
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+var temperatureBinToDec = function (binary) {
+    var floatTemperature = (parseInt(binary, 2) / Math.pow(2, 20)) * 200 - 50;
+    var temperature = floatTemperature.toFixed(2);
+    return temperature;
+};
+var humidityBinToDec = function (binary) {
+    var floatHumidity = (parseInt(binary, 2) / Math.pow(2, 20)) * 100;
+    var humidity = floatHumidity.toFixed(2);
+    return humidity;
+};
+var measutement = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var i2c1, wbuf, rbuf, binary, temperatureBinary, temperature, humidityBinary, humidity;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 i2c1 = i2c.openSync(1);
-                wbuf = Buffer.from([0x33, 0x00]);
+                wbuf = Buffer.from(MEASUREMENT_PARAM);
                 i2c1.writeI2cBlockSync(DHT20_ADDR, MEASUREMENT_ADDR, wbuf.length, wbuf);
-                return [4 /*yield*/, sleep(1000)];
-            case 1:
+                _a.label = 1;
+            case 1: return [4 /*yield*/, sleep(100)];
+            case 2:
                 _a.sent();
+                _a.label = 3;
+            case 3:
+                if (isCompleted(i2c1) === false) return [3 /*break*/, 1];
+                _a.label = 4;
+            case 4:
                 rbuf = Buffer.alloc(6);
                 i2c1.readI2cBlockSync(DHT20_ADDR, READ_ADDR, rbuf.length, rbuf);
                 binary = '';
                 rbuf.forEach(function (buffer) {
                     binary += buffer.toString(2).padStart(8, '0');
                 });
-                temperature = binary.substring(28, 48);
-                temp1 = parseInt(temperature, 2);
-                temp2 = (temp1 / Math.pow(2, 20)) * 200 - 50;
-                return [2 /*return*/, temp2];
+                temperatureBinary = binary.substring(28, 48);
+                temperature = temperatureBinToDec(temperatureBinary);
+                humidityBinary = binary.substring(8, 28);
+                humidity = humidityBinToDec(humidityBinary);
+                return [2 /*return*/, {
+                        temperature: temperature,
+                        humidity: humidity
+                    }];
+        }
+    });
+}); };
+var display = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var date, DHT20;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                date = new Date();
+                return [4 /*yield*/, measutement()];
+            case 1:
+                DHT20 = _a.sent();
+                console.log("".concat(date.toLocaleString(), " : ").concat(DHT20.temperature, "\u2103 : ").concat(DHT20.humidity, "%"));
+                return [2 /*return*/];
         }
     });
 }); };
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
-            case 0:
-                _b = (_a = console).log;
-                return [4 /*yield*/, getTemperature()];
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, display()];
             case 1:
-                _b.apply(_a, [_c.sent()]);
-                _c.label = 2;
+                _a.sent();
+                _a.label = 2;
             case 2:
-                if (1 == 1) return [3 /*break*/, 0];
-                _c.label = 3;
+                if (1 === 1) return [3 /*break*/, 0];
+                _a.label = 3;
             case 3: return [2 /*return*/];
         }
     });
