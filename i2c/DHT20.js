@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var i2c = require("i2c-bus");
+var fireStore_1 = require("../fireBase/fireStore");
 var DHT20_ADDR = 0x38;
 var READ_ADDR = 0x71;
 var MEASUREMENT_ADDR = 0xAC;
@@ -56,12 +57,12 @@ var isCompleted = function (bus) {
 };
 var temperatureBinToDec = function (binary) {
     var floatTemperature = (parseInt(binary, 2) / Math.pow(2, 20)) * 200 - 50;
-    var temperature = floatTemperature.toFixed(2);
+    var temperature = (Math.round(floatTemperature * 100)) / 100;
     return temperature;
 };
 var humidityBinToDec = function (binary) {
     var floatHumidity = (parseInt(binary, 2) / Math.pow(2, 20)) * 100;
-    var humidity = floatHumidity.toFixed(2);
+    var humidity = (Math.round(floatHumidity * 100)) / 100;
     return humidity;
 };
 var measutement = function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -92,37 +93,31 @@ var measutement = function () { return __awaiter(void 0, void 0, void 0, functio
                 humidityBinary = binary.substring(8, 28);
                 humidity = humidityBinToDec(humidityBinary);
                 return [2 /*return*/, {
+                        datetime: new Date(),
                         temperature: temperature,
                         humidity: humidity
                     }];
         }
     });
 }); };
-var display = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var date, DHT20;
+var main = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var DHT20;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                date = new Date();
-                return [4 /*yield*/, measutement()];
+            case 0: return [4 /*yield*/, measutement()];
             case 1:
                 DHT20 = _a.sent();
-                console.log("".concat(date.toLocaleString(), " : ").concat(DHT20.temperature, "\u2103 : ").concat(DHT20.humidity, "%"));
-                return [2 /*return*/];
-        }
-    });
-}); };
-var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, display()];
-            case 1:
-                _a.sent();
-                _a.label = 2;
+                return [4 /*yield*/, (0, fireStore_1.addDoc)(DHT20)];
             case 2:
+                _a.sent();
+                return [4 /*yield*/, sleep(300000)];
+            case 3:
+                _a.sent();
+                _a.label = 4;
+            case 4:
                 if (1 === 1) return [3 /*break*/, 0];
-                _a.label = 3;
-            case 3: return [2 /*return*/];
+                _a.label = 5;
+            case 5: return [2 /*return*/];
         }
     });
 }); };

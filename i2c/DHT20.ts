@@ -1,4 +1,5 @@
 import * as i2c from 'i2c-bus'
+import { addDoc } from '../fireBase/fireStore'
 
 const DHT20_ADDR = 0x38
 const READ_ADDR = 0x71
@@ -19,13 +20,13 @@ const isCompleted = (bus: i2c.I2CBus) => {
 
 const temperatureBinToDec = (binary: string) => {
   const floatTemperature = (parseInt(binary,2) / 2**20) * 200 - 50
-  const temperature = floatTemperature.toFixed(2)
+  const temperature = (Math.round(floatTemperature * 100)) /100
   return temperature
 }
 
 const humidityBinToDec = (binary: string) => {
   const floatHumidity = (parseInt(binary,2) / 2**20) * 100
-  const humidity = floatHumidity.toFixed(2)
+  const humidity = (Math.round(floatHumidity * 100)) /100
   return humidity
 }
 
@@ -60,21 +61,18 @@ const measutement = async () => {
   const humidity = humidityBinToDec(humidityBinary)
 
   return {
+    datetime: new Date(),
     temperature: temperature,
     humidity: humidity
   }
 }
 
-const display = async () => {
-  const date = new Date()
-  const DHT20 = await measutement()
-  console.log(`${date.toLocaleString()} : ${DHT20.temperature}℃ : ${DHT20.humidity}%`)
-}
-
 const main = async () => {
-  do
-    await display()
-  while (1 === 1)
+  do {
+    const DHT20 = await measutement()
+    await addDoc(DHT20)
+    await sleep(300000)
+  } while (1 === 1)
 } 
 
 main()
