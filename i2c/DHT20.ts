@@ -68,11 +68,8 @@ const measutement = async () => {
 }
 
 const main = async () => {
-  do {
     const DHT20 = await measutement()
     await addDoc(DHT20)
-    await sleep(300000)
-  } while (1 === 1)
 } 
 
-main()
+setInterval(main, 300000)

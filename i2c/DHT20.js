@@ -110,15 +110,8 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 return [4 /*yield*/, (0, fireStore_1.addDoc)(DHT20)];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, sleep(300000)];
-            case 3:
-                _a.sent();
-                _a.label = 4;
-            case 4:
-                if (1 === 1) return [3 /*break*/, 0];
-                _a.label = 5;
-            case 5: return [2 /*return*/];
+                return [2 /*return*/];
         }
     });
 }); };
-main();
+setInterval(main, 300000);
