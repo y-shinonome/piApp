@@ -114,4 +114,4 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
         }
     });
 }); };
-setInterval(main, 300000);
+main();

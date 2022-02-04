@@ -72,4 +72,4 @@ const main = async () => {
     await addDoc(DHT20)
 } 
 
-setInterval(main, 300000)
+main()
